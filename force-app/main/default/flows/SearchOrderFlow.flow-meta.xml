@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>65.0</apiVersion>
+    <description>Flow to search for orders by Order ID or Customer Email</description>
+    <label>Search Order Flow</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <status>Active</status>
+
+    <!-- Input Variables -->
+    <variables>
+        <name>orderId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <variables>
+        <name>customerEmail</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>true</isInput>
+        <isOutput>false</isOutput>
+    </variables>
+
+    <!-- Output Variables -->
+    <variables>
+        <name>foundOrderId</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+
+    <variables>
+        <name>orderStatus</name>
+        <dataType>String</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+    </variables>
+
+    <variables>
+        <name>orderAmount</name>
+        <dataType>Number</dataType>
+        <isCollection>false</isCollection>
+        <isInput>false</isInput>
+        <isOutput>true</isOutput>
+        <scale>2</scale>
+    </variables>
+
+    <!-- Decision: Which search criteria to use -->
+    <decisions>
+        <name>Check_Search_Criteria</name>
+        <label>Check Search Criteria</label>
+        <locationX>176</locationX>
+        <locationY>158</locationY>
+        <defaultConnectorLabel>No Valid Criteria</defaultConnectorLabel>
+        <rules>
+            <name>Search_By_Order_ID</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>orderId</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Get_Order_By_ID</targetReference>
+            </connector>
+            <label>Search By Order ID</label>
+        </rules>
+        <rules>
+            <name>Search_By_Email</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>customerEmail</leftValueReference>
+                <operator>IsNull</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Get_Order_By_Email</targetReference>
+            </connector>
+            <label>Search By Email</label>
+        </rules>
+    </decisions>
+
+    <!-- Get Records: Search by Order ID -->
+    <recordLookups>
+        <name>Get_Order_By_ID</name>
+        <label>Get Order By ID</label>
+        <locationX>50</locationX>
+        <locationY>278</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Set_Output_Values</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>OrderNumber</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>orderId</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Order</object>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+
+    <!-- Get Records: Search by Email -->
+    <recordLookups>
+        <name>Get_Order_By_Email</name>
+        <label>Get Order By Email</label>
+        <locationX>302</locationX>
+        <locationY>278</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Set_Output_Values</targetReference>
+        </connector>
+        <filterLogic>and</filterLogic>
+        <filters>
+            <field>CustomerAuthorizedBy.Email</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>customerEmail</elementReference>
+            </value>
+        </filters>
+        <getFirstRecordOnly>true</getFirstRecordOnly>
+        <object>Order</object>
+        <queriedFields>Id</queriedFields>
+        <queriedFields>OrderNumber</queriedFields>
+        <queriedFields>Status</queriedFields>
+        <queriedFields>TotalAmount</queriedFields>
+        <sortField>CreatedDate</sortField>
+        <sortOrder>Desc</sortOrder>
+        <storeOutputAutomatically>true</storeOutputAutomatically>
+    </recordLookups>
+
+    <!-- Assignment: Set output values -->
+    <assignments>
+        <name>Set_Output_Values</name>
+        <label>Set Output Values</label>
+        <locationX>176</locationX>
+        <locationY>398</locationY>
+        <assignmentItems>
+            <assignToReference>foundOrderId</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Get_Order_By_ID.OrderNumber</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>orderStatus</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Get_Order_By_ID.Status</elementReference>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>orderAmount</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <elementReference>Get_Order_By_ID.TotalAmount</elementReference>
+            </value>
+        </assignmentItems>
+    </assignments>
+
+    <start>
+        <locationX>50</locationX>
+        <locationY>0</locationY>
+        <connector>
+            <targetReference>Check_Search_Criteria</targetReference>
+        </connector>
+    </start>
+</Flow>
