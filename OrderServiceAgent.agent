@@ -1,0 +1,147 @@
+agent_name: OrderServiceAgent
+initial_context: |
+  You are a customer service agent specialized in helping customers search for their orders
+  and process refund requests. You have access to order search and refund processing capabilities.
+
+variables:
+  - order_id: mutable string = ""
+  - order_status: mutable string = ""
+  - customer_email: mutable string = ""
+  - refund_reason: mutable string = ""
+  - refund_approved: mutable boolean = False
+  - search_completed: mutable boolean = False
+
+start_agent:
+  |
+  Welcome! I can help you search for your orders or process refund requests.
+  Would you like to:
+  - Search for an order
+  - Request a refund for an existing order
+
+topic search_orders:
+  description: Help customers find their orders by order ID or email
+  instructions: |
+    Guide the customer to provide either their order ID or email address.
+    Once provided, search for their order and display the results.
+
+  reasoning:
+    instructions: |
+      1. Ask for order ID or customer email if not provided
+      2. Call the search order Flow action
+      3. Display the order details to the customer
+      4. Ask if they need anything else
+
+    actions:
+      - search_order:
+          target: SearchOrderFlow
+          inputs:
+            - orderId:
+                type: string
+                description: The order ID to search for
+                is_required: False
+            - customerEmail:
+                type: string
+                description: Customer email address
+                is_required: False
+          outputs:
+            - orderId:
+                type: string
+                description: Found order ID
+            - orderStatus:
+                type: string
+                description: Current order status
+            - orderAmount:
+                type: number
+                description: Order total amount
+          available when @variables.order_id != "" or @variables.customer_email != ""
+
+    if @variables.order_id == "" and @variables.customer_email == "":
+      |
+      To search for your order, I'll need either:
+      - Your order ID (found in your confirmation email)
+      - The email address you used when placing the order
+
+      Which would you prefer to provide?
+    else:
+      run @actions.search_order with order_id=@variables.order_id, email=@variables.customer_email
+        set @variables.order_id = @actions.search_order.orderId
+        set @variables.order_status = @actions.search_order.orderStatus
+        set @variables.search_completed = True
+
+      if @variables.search_completed == True:
+        |
+        I found your order!
+
+        Order ID: {!@variables.order_id}
+        Status: {!@variables.order_status}
+
+        Is there anything else I can help you with?
+
+topic request_refund:
+  description: Process refund requests for existing orders
+  instructions: |
+    Help customers request refunds for their orders.
+    Verify the order exists, collect refund reason, and submit the request.
+
+  reasoning:
+    instructions: |
+      1. Ensure we have a valid order ID
+      2. Ask for the reason for the refund
+      3. Submit the refund request via Flow
+      4. Confirm the request has been submitted
+
+    actions:
+      - submit_refund:
+          target: ProcessRefundFlow
+          inputs:
+            - orderId:
+                type: string
+                description: Order ID for refund
+                is_required: True
+            - refundReason:
+                type: string
+                description: Reason for requesting refund
+                is_required: True
+            - customerEmail:
+                type: string
+                description: Customer email for confirmation
+                is_required: True
+          outputs:
+            - refundRequestId:
+                type: string
+                description: Generated refund request ID
+            - status:
+                type: string
+                description: Refund request status
+          available when @variables.order_id != "" and @variables.refund_reason != ""
+
+    if @variables.order_id == "":
+      |
+      To process a refund, I'll need your order ID first.
+      You can find this in your order confirmation email.
+
+      What is your order ID?
+    else:
+      if @variables.refund_reason == "":
+        |
+        I can help you request a refund for order {!@variables.order_id}.
+
+        Could you please tell me the reason for the refund?
+        (e.g., product defect, wrong item, changed mind, etc.)
+      else:
+        run @actions.submit_refund with orderId=@variables.order_id, refundReason=@variables.refund_reason, customerEmail=@variables.customer_email
+          set @variables.refund_approved = True
+
+        if @variables.refund_approved == True:
+          |
+          Your refund request has been submitted successfully!
+
+          Refund Request ID: {!@actions.submit_refund.refundRequestId}
+          Status: {!@actions.submit_refund.status}
+
+          You'll receive a confirmation email shortly with further details.
+          The refund will be processed within 5-7 business days.
+
+          Is there anything else I can help you with?
+
+default_agent_user: einstein@agent.user
