@@ -70,23 +70,52 @@ Comprehensive test coverage:
 - API version **65.0+**
 - **Einstein Agent User** profile configured
 - Standard Order and Case objects enabled
+- Salesforce CLI (sf) installed
+
+### Quick Start - Automated Deployment
+
+**Option 1: Deploy to existing org**
+```bash
+# Clone the repository
+git clone https://github.com/kedar-bhumkar/salesforce-order-agent.git
+cd salesforce-order-agent
+
+# Run deployment script
+npm run deploy
+# or
+./scripts/deploy.sh <your-org-alias>
+```
+
+**Option 2: Create scratch org and deploy**
+```bash
+# Clone the repository
+git clone https://github.com/kedar-bhumkar/salesforce-order-agent.git
+cd salesforce-order-agent
+
+# Create scratch org and deploy
+npm run create:scratch
+# or
+./scripts/create-scratch-org.sh
+```
+
+### Manual Deployment
 
 ### Step 1: Deploy Apex Classes
 ```bash
-sf project deploy start --source-path force-app/main/default/classes/OrderServiceController.cls
-sf project deploy start --source-path force-app/main/default/classes/OrderServiceControllerTest.cls
-
-# Run tests
-sf apex run test --class-names OrderServiceControllerTest --wait 10
+sf project deploy start --source-path force-app/main/default/classes --wait 10
 ```
 
-### Step 2: Deploy Flows
+### Step 2: Run Tests
 ```bash
-sf project deploy start --source-path force-app/main/default/flows/SearchOrderFlow.flow-meta.xml
-sf project deploy start --source-path force-app/main/default/flows/ProcessRefundFlow.flow-meta.xml
+sf apex run test --class-names OrderServiceControllerTest --wait 10 --code-coverage
 ```
 
-### Step 3: Configure Agent Script
+### Step 3: Deploy Flows
+```bash
+sf project deploy start --source-path force-app/main/default/flows --wait 10
+```
+
+### Step 4: Configure Agent Script
 
 1. **Find your Einstein Agent User:**
    ```bash
@@ -105,7 +134,7 @@ sf project deploy start --source-path force-app/main/default/flows/ProcessRefund
    - Paste contents of `OrderServiceAgent.agent`
    - Save and Activate
 
-### Step 4: Create Action Definitions
+### Step 5: Create Action Definitions
 
 Configure two Flow actions in Agentforce:
 
@@ -123,7 +152,7 @@ Configure two Flow actions in Agentforce:
 - Flow: ProcessRefundFlow
 - Map inputs/outputs
 
-### Step 5: Test the Agent
+### Step 6: Test the Agent
 
 Test in Agent Builder Preview:
 ```
@@ -135,6 +164,35 @@ Agent: "I found your order! Order ID: ORD-12345..."
 
 User: "I need a refund"
 Agent: "I can help you request a refund..."
+```
+
+## 🗂️ Project Structure
+
+```
+salesforce-order-agent/
+├── OrderServiceAgent.agent        # Main Agent Script
+├── README.md                       # This file
+├── sfdx-project.json              # Salesforce DX project config
+├── package.json                    # npm scripts
+├── .gitignore                     # Git ignore rules
+├── .forceignore                   # Salesforce ignore rules
+├── config/
+│   └── project-scratch-def.json   # Scratch org definition
+├── scripts/
+│   ├── deploy.sh                  # Automated deployment script
+│   └── create-scratch-org.sh      # Scratch org creation script
+├── force-app/main/default/
+│   ├── classes/
+│   │   ├── OrderServiceController.cls
+│   │   ├── OrderServiceController.cls-meta.xml
+│   │   ├── OrderServiceControllerTest.cls
+│   │   └── OrderServiceControllerTest.cls-meta.xml
+│   └── flows/
+│       ├── SearchOrderFlow.flow-meta.xml
+│       └── ProcessRefundFlow.flow-meta.xml
+└── .vscode/
+    ├── settings.json              # VS Code settings
+    └── extensions.json            # Recommended extensions
 ```
 
 ## 🏗️ Architecture

@@ -1,0 +1,23 @@
+{
+  "orgName": "OrderServiceAgent Scratch Org",
+  "edition": "Developer",
+  "features": ["EnableSetPasswordInApi", "MultiCurrency"],
+  "settings": {
+    "lightningExperienceSettings": {
+      "enableS1DesktopEnabled": true
+    },
+    "mobileSettings": {
+      "enableS1EncryptedStoragePref2": false
+    },
+    "orderSettings": {
+      "enableOrders": true,
+      "enableReductionOrders": true,
+      "enableNegativeQuantity": true
+    },
+    "caseSettings": {
+      "emailToCase": {
+        "enableEmailToCase": true
+      }
+    }
+  }
+}
