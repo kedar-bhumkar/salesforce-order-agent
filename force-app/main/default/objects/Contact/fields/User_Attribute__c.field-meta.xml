@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>User_Attribute__c</fullName>
+    <label>User Attribute</label>
+    <description>Custom text field to store user attributes</description>
+    <inlineHelpText>Enter user attribute information</inlineHelpText>
+    <type>Text</type>
+    <length>255</length>
+    <externalId>false</externalId>
+    <unique>false</unique>
+    <caseSensitive>false</caseSensitive>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+</CustomField>
